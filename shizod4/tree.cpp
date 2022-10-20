@@ -34,10 +34,16 @@ void tree::add_node(char ch)
                 cur->info.second++;
                 return;
             }
-			if (ch > cur->info.first)
-				cur = cur->right;
-			else
-				cur = cur->left;
+            if (ch > cur->info.first)
+                if (cur->right != nullptr)
+                    cur = cur->right;
+                else
+                    break;
+            else
+                if (cur->left != nullptr)
+                    cur = cur->left;
+                else
+                    break;
 		}
         if (ch == cur->info.first) {
             cur->info.second++;
@@ -101,23 +107,74 @@ void tree::kol_num(node* cur, int& kol)
 
 void tree::delete_non_num(node* cur, node* parent)
 {
-    function< pair<char,bool>(node*)> nodelist = [ &nodelist](node* cur) {
+    cur = root;
+    pair<char, bool> p;
+    //function< pair<char,bool>(node*)> nodelist = [&p, &nodelist](node* cur) {
+    //    if (cur != nullptr) {
+    //        cout << "///////////////////" << "                 " << cur->info.first << endl;
+    //        if (!isdigit(cur->info.first)) {
+    //            cout << "///////////////////" << "                 " << cur->info.first << endl;
+    //            return make_pair(cur->info.first, true);
+    //        }
+    //        else
+    //        {
+    //            nodelist(cur->left);
+    //            nodelist(cur->right);
+    //        }
+
+    //    }
+    //    return make_pair('0', false);
+    //};
+    function< void(node*)> nodelist = [&p, &nodelist](node* cur, int next=1) {
+        if (next) {
+            if (cur != nullptr) {
+                cout << "///////////////////" << "                 " << cur->info.first << endl;
+                if (!isdigit(cur->info.first)) {
+                    cout << "///////////////////" << "                 " << cur->info.first << endl;
+                    p = cur->info;
+                    next = 0;
+                    return;
+                }
+                else
+                {
+                    nodelist(cur->left);
+                    nodelist(cur->right);
+                }
+
+            }
+        }
+        return;
+    };
+    vector<char> what_to_delete(0);
+    function<void(node*)> dl = [&what_to_delete, &dl](node* cur) {
         if (cur != nullptr) {
             if (!isdigit(cur->info.first))
-                return make_pair(cur->info.first, true);
-            else
-            {
-                nodelist(cur->left);
-                nodelist(cur->right);
-            }
-
+                what_to_delete.push_back(cur->info.first);
+            dl(cur->left);
+            dl(cur->right);
         }
-        return make_pair('0', false);
+        return;
     };
-    while (nodelist(cur).second)
+
+    dl(root);
+
+   // for_each(what_to_delete.begin(), what_to_delete.end(), [](char i) {cout << i << " "; });
+
+
+    //for (auto to_delete : what_to_delete)
+    //{
+    //    del_key(root , to_delete);
+    //    this->print(this->root);
+    //}
+
+
+    do
     {
-        del_key(cur, nodelist(cur).first);
-    }
+        p.second = 0;
+        nodelist(root);
+        del_key(root, p.first);
+        this->print(this->root);
+    } while (p.second);
 }
 
 void tree::delete_non_num2()
@@ -162,9 +219,13 @@ void tree::kol_NNum(node* cur, int& kol)
 
 tree::node* tree::FindMin(node* r)
 {
-    while (r->left != nullptr) {
-        r = r->left;
-    }
+    if (r->left == nullptr && r->right == nullptr)
+        return r;
+
+    if(r!=nullptr)
+        while (r->left != nullptr) {
+            r = r->left;
+        }
     return r;
 }
 
@@ -183,11 +244,16 @@ void tree::print(node* n, string  rpref, string cpref , string lpref )
 
 void tree::print_v(node* cur)
 {
+    //if (cur == nullptr)
+    //    return;
+    //print_v(cur->right);
+    //cout << cur->info.first <<" - " << cur->info.second << endl;
+    //print_v(cur->left);
     if (cur == nullptr)
         return;
-    print_v(cur->right);
-    cout << cur->info.first <<" - " << cur->info.second << endl;
     print_v(cur->left);
+    cout << cur->info.first << " - " << cur->info.second << endl;
+    print_v(cur->right);
 }
 void tree::searchKey(node*& curr, char key, node*& parent)
 {
@@ -242,21 +308,26 @@ void tree::del_key(node*& st, char key)
         }
 
         // освобождаем память
-        free(curr);        // или delete curr;
+        delete curr;
     }
 
     // Случай 2: удаляемый узел имеет двух потомков
     else if (curr->left && curr->right)
     {
-        // найти его неупорядоченный узел-преемник
-        node* successor = FindMin(curr->right);
+        // найти его неупорядоченный узел-преемник]
+        node* successor;
+        if(curr->right!=nullptr)
+            successor = FindMin(curr->right);
+        else
+            successor = FindMin(curr->left);
 
         // сохраняем последующее значение
         pair<char, int> val = successor->info;
 
         // рекурсивно удаляем преемника. Обратите внимание, что преемник
         // будет иметь не более одного потомка (правого потомка)
-        del_key(root, successor->info.first);
+        //del_key(root, successor->info.first);
+        del_key(st, successor->info.first);
 
         // копируем значение преемника в текущий узел
         curr->info = val;
@@ -285,7 +356,7 @@ void tree::del_key(node*& st, char key)
         }
 
         // освобождаем память
-        free(curr);
-        curr = root;
+        //free(curr);
+        //curr = st;
     }
 }

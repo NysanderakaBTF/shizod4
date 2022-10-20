@@ -6,6 +6,7 @@
 using namespace std;
 int main()
 {
+	setlocale(LC_ALL,"rus");
 	tree* t = new tree();
 	int k;
 	//for (int i = 0; i < 10; i++) {
@@ -31,19 +32,54 @@ int main()
 		" (5): удалить не цифры\n" <<
 		" (6): вывод узлов по убыванию\n" <<
 		endl;
-	cout << "Введите номер задания" << endl;
-	int num=0;
-	while (cin >> num) {
+	int num=0,nn=0;
+	char ch;
+	do  {
+		cout << endl<<"Введите номер задания" << endl;
+		cin >> num;
 		switch (num)
 		{
 		case 1:
 			cout << "Enter lenght" << endl;
 			cin >> ken;
-			generate(tre.begin(), tre.end(), []() {return char(rand()); });
+			for (size_t i = 0; i < ken; i++)
+			{
+				tre.push_back(char(33 + rand() % 94));
+			}
+			cout << tre;
+			for (size_t i = 0; i < ken; i++)
+			{
+				t->add_node(tre[i]);
+			}
+			
+			break;
+		case 2:
+			t->print(t->root);
+			break;
+		case 3:
+			cout << "Enter char" << endl;
+			cin >> ch;
+			t->add_node(ch);
+			break;
+		case 4:
+			t->kol_NNum(t->root, nn);
+			cout << nn;
+			break;
+		case 5:
+			cout << "tree before" << endl;
+			t->print(t->root);
+			t->delete_non_num(t->root,nullptr);
+			cout << "Tree after" << endl;
+			t->print(t->root);
+			break;
+		case 6:
+			t->print_v(t->root);
+			break;
 		default:
+			cout << "wrong number" << endl;
 			break;
 		}
-	}
+	} while (true);
 
 }
 
